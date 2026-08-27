@@ -1,0 +1,7 @@
+create-jdbc-connection-pool --datasourceclassname com.mysql.cj.jdbc.MysqlDataSource --restype javax.sql.DataSource --property user=globaltrade_app:password=GlobalTrade#2026!:serverName=localhost:portNumber=3306:databaseName=globaltrade_logistics:useSSL=false:allowPublicKeyRetrieval=true globaltradePool
+create-jdbc-resource --connectionpoolid globaltradePool jdbc/globaltradeDS
+create-auth-realm --classname com.sun.enterprise.security.auth.realm.file.FileRealm --property file=${com.sun.aas.instanceRoot}/config/globaltrade-keyfile:jaas-context=fileRealm globaltradeRealm
+create-file-user --authrealmname globaltradeRealm --groups GLOBALTRADE_ADMIN,LOGISTICS_COORDINATOR,WAREHOUSE_MANAGER,CUSTOMS_AGENT admin
+create-file-user --authrealmname globaltradeRealm --groups LOGISTICS_COORDINATOR coordinator
+create-file-user --authrealmname globaltradeRealm --groups WAREHOUSE_MANAGER warehouse
+create-file-user --authrealmname globaltradeRealm --groups CUSTOMS_AGENT customs
