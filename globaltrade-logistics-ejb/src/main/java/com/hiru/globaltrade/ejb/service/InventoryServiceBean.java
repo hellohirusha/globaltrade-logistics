@@ -1,9 +1,11 @@
 package com.hiru.globaltrade.ejb.service;
 
 import com.hiru.globaltrade.common.dto.InventoryAdjustmentCommand;
+import com.hiru.globaltrade.common.dto.InventoryItemCommand;
 import com.hiru.globaltrade.common.dto.InventoryView;
 import com.hiru.globaltrade.common.enums.AlertSeverity;
 import com.hiru.globaltrade.common.enums.InventoryStatus;
+import com.hiru.globaltrade.common.exception.BusinessRuleException;
 import com.hiru.globaltrade.common.exception.ResourceNotFoundException;
 import com.hiru.globaltrade.common.security.LogisticsRoles;
 import com.hiru.globaltrade.common.service.InventoryService;
@@ -36,6 +38,24 @@ public class InventoryServiceBean implements InventoryService {
                 .stream()
                 .map(MappingSupport::inventory)
                 .toList();
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public InventoryView create(InventoryItemCommand command) {
+        if (exists(command.sku(), command.warehouseCode())) {
+            throw new BusinessRuleException("Inventory item already exists for this warehouse.");
+        }
+        InventoryItemEntity item = new InventoryItemEntity();
+        item.setSku(command.sku());
+        item.setName(command.name());
+        item.setWarehouseCode(command.warehouseCode());
+        item.setQuantityOnHand(command.quantityOnHand());
+        item.setReorderPoint(command.reorderPoint());
+        item.setReorderQuantity(command.reorderQuantity());
+        entityManager.persist(item);
+        entityManager.flush();
+        return MappingSupport.inventory(item);
     }
 
     @Override
@@ -77,6 +97,16 @@ public class InventoryServiceBean implements InventoryService {
             throw new ResourceNotFoundException("Inventory item", sku + " at " + warehouseCode);
         }
         return items.get(0);
+    }
+
+    private boolean exists(String sku, String warehouseCode) {
+        return entityManager.createQuery("""
+                        select count(i) from InventoryItemEntity i
+                        where i.sku = :sku and i.warehouseCode = :warehouseCode
+                        """, Long.class)
+                .setParameter("sku", sku)
+                .setParameter("warehouseCode", warehouseCode)
+                .getSingleResult() > 0;
     }
 
     private void alert(AlertSeverity severity, String title, String message) {
