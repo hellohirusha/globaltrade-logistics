@@ -1,12 +1,7 @@
 package com.hiru.globaltrade.ejb.service;
 
-import com.hiru.globaltrade.common.service.InventoryService;
-import com.hiru.globaltrade.common.service.ShipmentService;
-import com.hiru.globaltrade.common.service.VendorService;
-import com.hiru.globaltrade.common.security.LogisticsRoles;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
-import jakarta.annotation.security.RunAs;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Schedule;
 import jakarta.ejb.Singleton;
@@ -20,7 +15,6 @@ import java.util.logging.Logger;
 
 @Singleton
 @Startup
-@RunAs(LogisticsRoles.ADMIN)
 public class SupplyChainTimerBean {
     private static final Logger LOGGER = Logger.getLogger(SupplyChainTimerBean.class.getName());
 
@@ -28,13 +22,7 @@ public class SupplyChainTimerBean {
     private TimerService timerService;
 
     @EJB
-    private ShipmentService shipmentService;
-
-    @EJB
-    private InventoryService inventoryService;
-
-    @EJB
-    private VendorService vendorService;
+    private MaintenanceServiceBean maintenanceService;
 
     @PostConstruct
     void createProgrammaticHealthTimer() {
@@ -49,19 +37,19 @@ public class SupplyChainTimerBean {
 
     @Schedule(hour = "*", minute = "*/15", second = "0", persistent = true, info = "SHIPMENT_DELAY_MONITOR")
     public void monitorDelays() {
-        int delayed = shipmentService.monitorShipmentDelays();
+        int delayed = maintenanceService.monitorShipmentDelays();
         LOGGER.info(() -> "Shipment delay monitor completed. Delayed shipments marked: " + delayed);
     }
 
     @Schedule(hour = "*", minute = "*/20", second = "0", persistent = true, info = "INVENTORY_REPLENISHMENT_MONITOR")
     public void monitorInventory() {
-        int signals = inventoryService.monitorReplenishment();
+        int signals = maintenanceService.monitorReplenishment();
         LOGGER.info(() -> "Inventory replenishment monitor completed. Signals raised: " + signals);
     }
 
     @Timeout
     public void programmaticHealthSweep(Timer timer) {
-        int vendors = vendorService.refreshVendorTiers();
+        int vendors = maintenanceService.refreshVendorTiers();
         LOGGER.info(() -> "Programmatic health sweep completed for vendors: " + vendors + " timer=" + timer.getInfo());
     }
 }
