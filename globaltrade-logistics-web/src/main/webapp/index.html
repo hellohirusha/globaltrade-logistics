@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GlobalTrade Logistics Operations</title>
+    <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+    <div>
+        <p class="eyebrow">Jakarta EE 10 Operations Console</p>
+        <h1>GlobalTrade Logistics</h1>
+    </div>
+    <div class="topbar-actions">
+        <span id="lastUpdated">Waiting for data</span>
+        <button id="refreshButton" class="refresh-button" type="button">Refresh</button>
+    </div>
+</header>
+
+<main class="layout">
+    <section class="hero-panel">
+        <div>
+            <p class="eyebrow">Global command center</p>
+            <h2>Supply chain visibility, risk control, and compliance response in one enterprise dashboard.</h2>
+        </div>
+        <div class="hero-status">
+            <strong id="healthScore">100%</strong>
+            <span>transaction success</span>
+        </div>
+    </section>
+
+    <section class="kpi-grid" aria-label="Operational metrics">
+        <article class="kpi">
+            <span>Active shipments</span>
+            <strong id="activeShipments">0</strong>
+        </article>
+        <article class="kpi warning">
+            <span>Delayed</span>
+            <strong id="delayedShipments">0</strong>
+        </article>
+        <article class="kpi">
+            <span>Customs reviews</span>
+            <strong id="customsReviews">0</strong>
+        </article>
+        <article class="kpi warning">
+            <span>Inventory signals</span>
+            <strong id="lowStockItems">0</strong>
+        </article>
+        <article class="kpi danger">
+            <span>Critical alerts</span>
+            <strong id="openCriticalAlerts">0</strong>
+        </article>
+        <article class="kpi">
+            <span>Vendor watchlist</span>
+            <strong id="watchlistVendors">0</strong>
+        </article>
+    </section>
+
+    <nav class="tabs" aria-label="Dashboard sections">
+        <button class="tab active" data-tab="overview" type="button">Overview</button>
+        <button class="tab" data-tab="shipments" type="button">Shipments</button>
+        <button class="tab" data-tab="inventory" type="button">Inventory</button>
+        <button class="tab" data-tab="vendors" type="button">Vendors</button>
+        <button class="tab" data-tab="compliance" type="button">Compliance</button>
+    </nav>
+
+    <section id="overview" class="tab-panel active">
+        <div class="split">
+            <article class="panel">
+                <div class="panel-heading">
+                    <h3>Priority shipments</h3>
+                    <span>Risk ordered</span>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Reference</th>
+                            <th>Lane</th>
+                            <th>Status</th>
+                            <th>Risk</th>
+                        </tr>
+                        </thead>
+                        <tbody id="priorityShipments"></tbody>
+                    </table>
+                </div>
+            </article>
+            <article class="panel">
+                <div class="panel-heading">
+                    <h3>Open alerts</h3>
+                    <span>Action required</span>
+                </div>
+                <div id="alertsList" class="alert-list"></div>
+            </article>
+        </div>
+        <article class="panel">
+            <div class="panel-heading">
+                <h3>Performance telemetry</h3>
+                <span>EJB interceptor samples</span>
+            </div>
+            <div id="performanceBars" class="bars"></div>
+        </article>
+    </section>
+
+    <section id="shipments" class="tab-panel">
+        <div class="split">
+            <article class="panel">
+                <div class="panel-heading">
+                    <h3>Create shipment</h3>
+                    <span>EJB transaction create</span>
+                </div>
+                <form id="shipmentForm" class="form-grid">
+                    <label>Reference<input name="reference" required value="GTL-2026-0099"></label>
+                    <label>Origin<input name="origin" required value="Colombo"></label>
+                    <label>Destination<input name="destination" required value="Tokyo"></label>
+                    <label>Carrier<input name="carrier" required value="OceanLink"></label>
+                    <label>Vendor code<input name="vendorCode" required value="VEN-SG-001"></label>
+                    <label>Priority
+                        <select name="priority">
+                            <option>STANDARD</option>
+                            <option selected>EXPRESS</option>
+                            <option>CRITICAL</option>
+                        </select>
+                    </label>
+                    <label>Customs reference<input name="customsReference" required value="CUS-LK-JP-9001"></label>
+                    <label>Estimated delivery<input name="estimatedDelivery" type="datetime-local" required></label>
+                    <button class="primary" type="submit">Create shipment</button>
+                </form>
+            </article>
+            <article class="panel">
+                <div class="panel-heading">
+                    <h3>Status update</h3>
+                    <span>Rollback-safe update</span>
+                </div>
+                <form id="statusForm" class="form-grid">
+                    <label>Reference<input name="reference" required value="GTL-2026-0002"></label>
+                    <label>Status
+                        <select name="status">
+                            <option>IN_TRANSIT</option>
+                            <option selected>CUSTOMS_REVIEW</option>
+                            <option>DELAYED</option>
+                            <option>DELIVERED</option>
+                            <option>CANCELLED</option>
+                        </select>
+                    </label>
+                    <label class="wide">Reason<input name="reason" required value="Customs document validation completed by broker."></label>
+                    <button class="primary" type="submit">Update status</button>
+                </form>
+            </article>
+        </div>
+    </section>
+
+    <section id="inventory" class="tab-panel">
+        <article class="panel">
+            <div class="panel-heading">
+                <h3>Inventory control</h3>
+                <span>Warehouse replenishment</span>
+            </div>
+            <form id="inventoryForm" class="form-grid inline-form">
+                <label>SKU<input name="sku" required value="GT-SENSOR-500"></label>
+                <label>Warehouse<input name="warehouseCode" required value="SIN-WH-02"></label>
+                <label>On hand<input name="quantityOnHand" type="number" min="0" required value="18"></label>
+                <label>Reorder point<input name="reorderPoint" type="number" min="1" required value="25"></label>
+                <label>Reorder qty<input name="reorderQuantity" type="number" min="1" required value="80"></label>
+                <button class="primary" type="submit">Adjust inventory</button>
+            </form>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>SKU</th>
+                        <th>Name</th>
+                        <th>Warehouse</th>
+                        <th>On hand</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody id="inventoryRows"></tbody>
+                </table>
+            </div>
+        </article>
+    </section>
+
+    <section id="vendors" class="tab-panel">
+        <article class="panel">
+            <div class="panel-heading">
+                <h3>Vendor performance</h3>
+                <span>Weighted scoring</span>
+            </div>
+            <form id="vendorForm" class="form-grid inline-form">
+                <label>Vendor code<input name="vendorCode" required value="VEN-CN-021"></label>
+                <label>On-time score<input name="onTimeScore" type="number" min="0" max="100" required value="72"></label>
+                <label>Compliance score<input name="complianceScore" type="number" min="0" max="100" required value="81"></label>
+                <label>Disruption score<input name="disruptionScore" type="number" min="0" max="100" required value="64"></label>
+                <button class="primary" type="submit">Evaluate vendor</button>
+            </form>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Country</th>
+                        <th>Score</th>
+                        <th>Tier</th>
+                    </tr>
+                    </thead>
+                    <tbody id="vendorRows"></tbody>
+                </table>
+            </div>
+        </article>
+    </section>
+
+    <section id="compliance" class="tab-panel">
+        <div class="split">
+            <article class="panel">
+                <div class="panel-heading">
+                    <h3>Compliance audit trail</h3>
+                    <span>Interceptor generated</span>
+                </div>
+                <div id="auditList" class="timeline"></div>
+            </article>
+            <article class="panel">
+                <div class="panel-heading">
+                    <h3>Control posture</h3>
+                    <span>Assignment coverage</span>
+                </div>
+                <ul class="coverage">
+                    <li>Persistent EJB timers for shipment and inventory monitors</li>
+                    <li>Audit, validation, and performance interceptor chain</li>
+                    <li>JTA transaction demarcation with rollback-safe command services</li>
+                    <li>Role-based access control mapped to Payara realm groups</li>
+                    <li>MySQL-backed JPA persistence with optimistic locking</li>
+                    <li>EAR packaging with isolated common, EJB, web, and EAR modules</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+</main>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="assets/app.js"></script>
+</body>
+</html>
