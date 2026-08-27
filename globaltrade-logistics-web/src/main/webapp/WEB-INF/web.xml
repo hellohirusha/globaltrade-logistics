@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+         version="6.0">
+    <display-name>GlobalTrade Logistics Operations</display-name>
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Protected operations console</web-resource-name>
+            <url-pattern>/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>GLOBALTRADE_ADMIN</role-name>
+            <role-name>LOGISTICS_COORDINATOR</role-name>
+            <role-name>WAREHOUSE_MANAGER</role-name>
+            <role-name>CUSTOMS_AGENT</role-name>
+        </auth-constraint>
+    </security-constraint>
+
+    <login-config>
+        <auth-method>BASIC</auth-method>
+        <realm-name>globaltradeRealm</realm-name>
+    </login-config>
+
+    <security-role>
+        <role-name>GLOBALTRADE_ADMIN</role-name>
+    </security-role>
+    <security-role>
+        <role-name>LOGISTICS_COORDINATOR</role-name>
+    </security-role>
+    <security-role>
+        <role-name>WAREHOUSE_MANAGER</role-name>
+    </security-role>
+    <security-role>
+        <role-name>CUSTOMS_AGENT</role-name>
+    </security-role>
+</web-app>
