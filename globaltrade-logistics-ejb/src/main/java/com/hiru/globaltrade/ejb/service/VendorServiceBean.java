@@ -1,9 +1,11 @@
 package com.hiru.globaltrade.ejb.service;
 
+import com.hiru.globaltrade.common.dto.VendorCommand;
 import com.hiru.globaltrade.common.dto.VendorScoreCommand;
 import com.hiru.globaltrade.common.dto.VendorView;
 import com.hiru.globaltrade.common.enums.AlertSeverity;
 import com.hiru.globaltrade.common.enums.VendorTier;
+import com.hiru.globaltrade.common.exception.BusinessRuleException;
 import com.hiru.globaltrade.common.exception.ResourceNotFoundException;
 import com.hiru.globaltrade.common.security.LogisticsRoles;
 import com.hiru.globaltrade.common.service.VendorService;
@@ -39,6 +41,25 @@ public class VendorServiceBean implements VendorService {
                 .stream()
                 .map(MappingSupport::vendor)
                 .toList();
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public VendorView create(VendorCommand command) {
+        if (exists(command.vendorCode())) {
+            throw new BusinessRuleException("Vendor code already exists.");
+        }
+        VendorEntity vendor = new VendorEntity();
+        vendor.setVendorCode(command.vendorCode());
+        vendor.setName(command.name());
+        vendor.setCountry(command.country());
+        vendor.setScore(BigDecimal.valueOf(command.score()).setScale(2, RoundingMode.HALF_UP));
+        vendor.setTier(tier(vendor.getScore()));
+        vendor.setActive(command.active());
+        vendor.setLastEvaluated(Instant.now());
+        entityManager.persist(vendor);
+        entityManager.flush();
+        return MappingSupport.vendor(vendor);
     }
 
     @Override
@@ -87,6 +108,12 @@ public class VendorServiceBean implements VendorService {
             throw new ResourceNotFoundException("Vendor", vendorCode);
         }
         return vendors.get(0);
+    }
+
+    private boolean exists(String vendorCode) {
+        return entityManager.createQuery("select count(v) from VendorEntity v where v.vendorCode = :code", Long.class)
+                .setParameter("code", vendorCode)
+                .getSingleResult() > 0;
     }
 
     private void alert(AlertSeverity severity, String title, String message) {
