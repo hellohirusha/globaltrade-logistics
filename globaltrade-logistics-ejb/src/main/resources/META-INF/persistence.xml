@@ -6,7 +6,7 @@
     <persistence-unit name="globaltradePU" transaction-type="JTA">
         <jta-data-source>jdbc/globaltradeDS</jta-data-source>
         <properties>
-            <property name="jakarta.persistence.schema-generation.database.action" value="create"/>
+            <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
             <property name="eclipselink.logging.level" value="INFO"/>
             <property name="eclipselink.ddl-generation.output-mode" value="database"/>
             <property name="eclipselink.target-database" value="MySQL"/>
