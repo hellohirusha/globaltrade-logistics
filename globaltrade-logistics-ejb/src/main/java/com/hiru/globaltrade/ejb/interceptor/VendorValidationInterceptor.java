@@ -8,12 +8,18 @@ import jakarta.interceptor.InvocationContext;
 public class VendorValidationInterceptor {
     @AroundInvoke
     public Object validateShipmentCommand(InvocationContext context) throws Exception {
-        for (Object parameter : context.getParameters()) {
+        Object[] parameters = context.getParameters();
+        if (parameters == null) {
+            return context.proceed();
+        }
+        for (Object parameter : parameters) {
             if (parameter instanceof ShipmentCommand command) {
-                if (command.origin().equalsIgnoreCase(command.destination())) {
+                if (command.origin() != null
+                        && command.destination() != null
+                        && command.origin().equalsIgnoreCase(command.destination())) {
                     throw new BusinessRuleException("Origin and destination must be different for a shipment.");
                 }
-                if (command.vendorCode().startsWith("SUSP-")) {
+                if (command.vendorCode() != null && command.vendorCode().startsWith("SUSP-")) {
                     throw new BusinessRuleException("Suspended vendor codes cannot create new shipments.");
                 }
             }
