@@ -41,6 +41,7 @@ Core capabilities:
 ```text
 globaltrade-logistics
 |-- globaltrade-logistics-common
+|-- globaltrade-logistics-security
 |-- globaltrade-logistics-ejb
 |-- globaltrade-logistics-web
 |-- globaltrade-logistics-ear
@@ -79,6 +80,17 @@ Contains:
 - Container-managed transactions
 - Role-protected service methods
 - Business policies such as shipment risk scoring
+
+### `globaltrade-logistics-security`
+
+Payara server security extension.
+
+Contains:
+
+- Custom JAAS login module for supply-chain authentication
+- PBKDF2 password verification support
+- Security schema verification tests
+- Domain-lib JAR used by Payara before the EAR authenticates users
 
 ### `globaltrade-logistics-web`
 
@@ -140,7 +152,8 @@ Security is applied at both web and EJB boundaries:
 - Web access is protected through `web.xml`
 - Payara group mappings are configured in `glassfish-web.xml`
 - EJB services use role annotations
-- Timer execution uses a run-as administrative role
+- User identities and role memberships are read from MySQL
+- The custom Payara JAAS login module validates PBKDF2 credential hashes
 - Security headers are added to API responses
 
 Defined roles:
@@ -184,12 +197,12 @@ The dashboard includes:
 - Open alert list and acknowledgement action
 - Shipment creation form
 - Shipment status update form
+- Inventory item creation form
 - Inventory adjustment form
+- Vendor creation form
 - Vendor score evaluation form
 - Compliance audit timeline
 - EJB performance telemetry view
-
-The UI includes fallback demo data so the dashboard can be visually reviewed before the application server is connected. In a deployed environment, the same screen reads live data through the JAX-RS API.
 
 ## REST API
 
@@ -208,8 +221,10 @@ Endpoints:
 | `POST` | `/shipments` | Create a shipment. |
 | `PUT` | `/shipments/status` | Update shipment status. |
 | `GET` | `/inventory` | Read inventory items. |
+| `POST` | `/inventory` | Create an inventory item. |
 | `PUT` | `/inventory` | Adjust inventory levels. |
 | `GET` | `/vendors` | Read vendor performance data. |
+| `POST` | `/vendors` | Create a vendor. |
 | `PUT` | `/vendors/score` | Recalculate vendor score and tier. |
 | `GET` | `/alerts` | Read open alerts. |
 | `PUT` | `/alerts/{id}/acknowledge` | Acknowledge an alert. |
@@ -265,11 +280,20 @@ deploy/mysql/schema.sql
 The script creates:
 
 - Database `globaltrade_logistics`
-- User `globaltrade_app`
-- Application database privileges
-- `deployment_audit` table for deployment tracking
+- Authentication users and role membership tables
+- Login and security audit tables
+- Logistics operation tables for vendors, shipments, inventory, alerts, compliance audit, and performance metrics
+- Deployment audit table for deployment tracking
 
-Run with a MySQL administrator account:
+Create the database login with a local password that is not saved in the repository:
+
+```sql
+CREATE USER IF NOT EXISTS 'globaltrade_app'@'%' IDENTIFIED BY '<your-local-db-password>';
+GRANT ALL PRIVILEGES ON globaltrade_logistics.* TO 'globaltrade_app'@'%';
+FLUSH PRIVILEGES;
+```
+
+Then run the schema with a MySQL administrator account:
 
 ```bash
 mysql -u root -p < deploy/mysql/schema.sql
@@ -287,16 +311,33 @@ The script configures:
 
 - JDBC connection pool `globaltradePool`
 - JDBC resource `jdbc/globaltradeDS`
-- File realm `globaltradeRealm`
-- Operational security groups and users
+- MySQL-backed custom realm `globaltradeRealm`
+- Custom supply-chain JAAS login module properties
+- Payara password alias reference for the JDBC pool instead of a plain database password
+
+Build and install the Payara login module before creating or using the realm:
+
+```powershell
+mvn -pl globaltrade-logistics-security package
+.\deploy\payara\install-security-extension.ps1 -PayaraHome C:\Payara\payara6 -DomainName domain1
+```
+
+Restart Payara after installing the security extension:
+
+```bash
+asadmin restart-domain domain1
+```
 
 Run from the Payara `bin` directory:
 
 ```bash
 asadmin start-domain
-asadmin multimode --file deploy/payara/setup-domain.asadmin
+asadmin create-password-alias globaltrade.db.password
+asadmin multimode --file C:/Users/neth/Documents/Projects/intelli_j-idea-projects/bcd-ii-final-project/globaltrade-logistics/deploy/payara/setup-domain.asadmin
 asadmin ping-connection-pool globaltradePool
 ```
+
+When `create-password-alias` prompts for the alias password, enter the same MySQL password used for `globaltrade_app`. The tracked Payara script only stores `${ALIAS=globaltrade.db.password}` for the JDBC pool. The custom JAAS module uses `jdbc/globaltradeDS`, so the realm does not need its own database password.
 
 ## Deploy
 
@@ -332,6 +373,9 @@ Automated tests cover:
 - Shipment risk scoring
 - Stateless EJB annotation presence
 - Timer callback annotation presence
+- Custom JAAS password hashing and security schema verification
+- REST resource CDI injection
+- API exception mapping
 - Dashboard section coverage
 
 Run:
@@ -340,11 +384,16 @@ Run:
 mvn clean verify
 ```
 
-Latest verified result:
+Run Payara container integration tests after Payara, MySQL, and the custom realm are configured:
 
-```text
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 0
-BUILD SUCCESS
+```bash
+mvn -Parquillian-payara -pl globaltrade-logistics-ear -am verify
+```
+
+Run dependency and supply-chain security checks:
+
+```bash
+mvn -Psecurity-scan verify
 ```
 
 ## Manual Smoke Test Checklist
@@ -373,7 +422,7 @@ Additional technical documentation:
 
 ## Operational Notes
 
-- `persistence.xml` currently uses schema generation mode `create` for simple environment setup. For a long-running environment, switch schema management to migrations and set schema generation to `none`.
-- Replace setup-script credentials with secret-managed values before using a shared or production-like environment.
+- `persistence.xml` uses non-destructive schema management. Apply `deploy/mysql/schema.sql` before deploying the EAR.
+- Database passwords must be supplied locally through MySQL administration and Payara password aliases, not committed into setup scripts.
 - Ensure MySQL Connector/J is available in the Payara domain before deploying the EAR.
-- The dashboard fallback data is only for visual continuity when the API is not reachable. Live operations use the Jakarta REST API backed by EJB services and MySQL.
+- Live operations use the Jakarta REST API backed by EJB services and MySQL.

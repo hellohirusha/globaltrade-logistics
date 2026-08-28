@@ -2,14 +2,19 @@
 
 ## Scope
 
-The test approach follows the assignment requirement for timer services, interceptors, transaction behavior, security validation, performance evidence, exception handling, and deployment verification.
+The test approach validates timer services, interceptors, transaction behavior, supply-chain security, performance evidence, exception handling, and deployment verification.
 
 ## Automated Tests Included
 
 - Common module role contract test verifies enterprise role constants.
+- Security module tests verify PBKDF2 credential hashes, custom JAAS configuration, and database security tables.
 - EJB risk scoring tests validate high-risk and low-risk logistics scenarios.
 - EJB annotation tests verify stateless service and timer callback presence.
+- EJB interceptor tests verify shipment validation behavior.
+- Web resource tests verify CDI injection on REST resources.
+- API exception mapper tests verify business, not-found, access, and platform error responses.
 - Web asset test verifies that the dashboard contains operational sections for shipments, inventory, vendors, compliance, and telemetry.
+- Arquillian integration tests verify authenticated and unauthorized API behavior in Payara.
 
 ## Manual End-to-End Test Cases
 
@@ -36,15 +41,42 @@ The `PerformanceInterceptor` records EJB service durations to the `performance_m
 
 Security is validated through:
 
-- Payara file realm authentication.
+- Payara custom JAAS authentication.
+- MySQL-backed users and role memberships.
+- PBKDF2 password hash verification.
+- Payara password alias usage for database credentials.
+- Account lock and login audit records.
 - Group to role mappings in `glassfish-web.xml`.
 - Web constraint on all dashboard and API paths.
 - EJB method-level role restrictions.
 - Compliance audit records for command methods.
 
+## Container Integration Tests
+
+Run these after MySQL is bootstrapped, the security extension is installed into Payara, the `globaltrade.db.password` Payara alias exists, and the domain is running:
+
+```bash
+mvn -Parquillian-payara -pl globaltrade-logistics-ear -am verify
+```
+
+The Arquillian profile deploys the packaged EAR to Payara and verifies live HTTP behavior for admin, coordinator, warehouse, customs, anonymous access, invalid shipment routes, and duplicate vendor submissions.
+
+## Supply Chain Security Scan
+
+Run:
+
+```bash
+mvn -Psecurity-scan verify
+```
+
+The profile runs Maven Enforcer, OWASP Dependency-Check, and CycloneDX SBOM generation. Dependency-Check requires vulnerability database downloads, so the first run can take several minutes.
+
 ## Evidence To Capture For Submission
 
 - Maven `clean verify` output.
+- Arquillian Payara profile output.
+- OWASP Dependency-Check report.
+- CycloneDX SBOM files.
 - Payara datasource ping output.
 - Dashboard screenshots after seed data loads.
 - Screenshots for shipment creation, status update, inventory adjustment, vendor scoring, alert acknowledgement, compliance audit trail, and performance telemetry.
