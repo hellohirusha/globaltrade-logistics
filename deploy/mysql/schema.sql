@@ -2,11 +2,83 @@ CREATE DATABASE IF NOT EXISTS globaltrade_logistics
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_0900_ai_ci;
 
-CREATE USER IF NOT EXISTS 'globaltrade_app'@'%' IDENTIFIED BY 'GlobalTrade#2026!';
-GRANT ALL PRIVILEGES ON globaltrade_logistics.* TO 'globaltrade_app'@'%';
-FLUSH PRIVILEGES;
+-- Create the database login outside this tracked schema using a local secret:
+-- CREATE USER IF NOT EXISTS 'globaltrade_app'@'%' IDENTIFIED BY '<local-secret>';
+-- GRANT ALL PRIVILEGES ON globaltrade_logistics.* TO 'globaltrade_app'@'%';
+-- FLUSH PRIVILEGES;
 
 USE globaltrade_logistics;
+
+CREATE TABLE IF NOT EXISTS auth_users (
+    username VARCHAR(80) PRIMARY KEY,
+    display_name VARCHAR(160) NOT NULL,
+    password_hash VARCHAR(256) NOT NULL,
+    password_salt VARCHAR(128) NOT NULL,
+    password_iterations INT NOT NULL,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    account_locked TINYINT(1) NOT NULL DEFAULT 0,
+    failed_attempts INT NOT NULL DEFAULT 0,
+    password_expires_at DATETIME(6) NULL,
+    last_login_at DATETIME(6) NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    INDEX idx_auth_users_active_locked (active, account_locked)
+);
+
+CREATE TABLE IF NOT EXISTS auth_user_roles (
+    username VARCHAR(80) NOT NULL,
+    role_name VARCHAR(64) NOT NULL,
+    PRIMARY KEY (username, role_name),
+    CONSTRAINT fk_auth_roles_user FOREIGN KEY (username) REFERENCES auth_users (username) ON DELETE CASCADE,
+    INDEX idx_auth_roles_role_name (role_name)
+);
+
+CREATE TABLE IF NOT EXISTS login_audit (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(80) NOT NULL,
+    event_type VARCHAR(40) NOT NULL,
+    outcome VARCHAR(40) NOT NULL,
+    source_ip VARCHAR(64) NOT NULL,
+    user_agent VARCHAR(160) NOT NULL,
+    message VARCHAR(500) NOT NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    INDEX idx_login_audit_username_created (username, created_at),
+    INDEX idx_login_audit_outcome_created (outcome, created_at)
+);
+
+CREATE TABLE IF NOT EXISTS security_events (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    event_type VARCHAR(80) NOT NULL,
+    severity VARCHAR(24) NOT NULL,
+    actor VARCHAR(120) NOT NULL,
+    details VARCHAR(800) NOT NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    INDEX idx_security_events_type_created (event_type, created_at),
+    INDEX idx_security_events_severity_created (severity, created_at)
+);
+
+INSERT INTO auth_users (username, display_name, password_hash, password_salt, password_iterations, active, account_locked)
+VALUES
+    ('admin', 'Operations Admin', 'o6Ny+yG45fNuXrfkSrF8ymEtiB2EOSoRP2u6TZ1ithI=', 'Z2xvYmFsdHJhZGUtYWRtaW4tMjAyNg==', 120000, 1, 0),
+    ('coordinator', 'Logistics Coordinator', '68iLtMB8q/O22GUfM9soJGDR21gFUQQcQCqJszuyIIg=', 'Z2xvYmFsdHJhZGUtY29vcmRpbmF0b3ItMjAyNg==', 120000, 1, 0),
+    ('warehouse', 'Warehouse Manager', 'EFJhVfD01QO5X9KcmQ7gb2xQlExErpzHuQ7eb90RoQg=', 'Z2xvYmFsdHJhZGUtd2FyZWhvdXNlLTIwMjY=', 120000, 1, 0),
+    ('customs', 'Customs Agent', 'qjIq0w+vLkfu1NjhJ0D7uPlNy9oo3EUZimPKNPM7fSI=', 'Z2xvYmFsdHJhZGUtY3VzdG9tcy0yMDI2', 120000, 1, 0),
+    ('vendor', 'Vendor Representative', 'ln8ZUvPp3+jk4Z0VxOFEZSUUv7foh4fGVOdFizFex8k=', 'Z2xvYmFsdHJhZGUtdmVuZG9yLTIwMjY=', 120000, 1, 0),
+    ('customer', 'Customer Portal User', 'hJRPd2GgOkQuJwWP6I34bVrEGEpW5LdX0rh/EKT6Guk=', 'Z2xvYmFsdHJhZGUtY3VzdG9tZXItMjAyNg==', 120000, 1, 0)
+ON DUPLICATE KEY UPDATE username = VALUES(username);
+
+INSERT INTO auth_user_roles (username, role_name)
+VALUES
+    ('admin', 'GLOBALTRADE_ADMIN'),
+    ('admin', 'LOGISTICS_COORDINATOR'),
+    ('admin', 'WAREHOUSE_MANAGER'),
+    ('admin', 'CUSTOMS_AGENT'),
+    ('coordinator', 'LOGISTICS_COORDINATOR'),
+    ('warehouse', 'WAREHOUSE_MANAGER'),
+    ('customs', 'CUSTOMS_AGENT'),
+    ('vendor', 'VENDOR_REPRESENTATIVE'),
+    ('customer', 'CUSTOMER_PORTAL_USER')
+ON DUPLICATE KEY UPDATE role_name = VALUES(role_name);
 
 CREATE TABLE IF NOT EXISTS vendors (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
