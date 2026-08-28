@@ -9,10 +9,11 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>GlobalTrade Logistics Platform</name>
-    <description>Jakarta EE 10 EAR application for the BCD II GlobalTrade Logistics assignment.</description>
+    <description>Jakarta EE 10 EAR platform for GlobalTrade Logistics supply-chain operations.</description>
 
     <modules>
         <module>globaltrade-logistics-common</module>
+        <module>globaltrade-logistics-security</module>
         <module>globaltrade-logistics-ejb</module>
         <module>globaltrade-logistics-web</module>
         <module>globaltrade-logistics-ear</module>
@@ -28,6 +29,14 @@
         <junit.version>5.10.2</junit.version>
         <assertj.version>3.25.3</assertj.version>
         <surefire.version>3.2.5</surefire.version>
+        <arquillian.version>1.10.1.Final</arquillian.version>
+        <payara.arquillian.version>4.0.alpha4</payara.arquillian.version>
+        <build.helper.version>3.6.0</build.helper.version>
+        <payara.home>C:/Payara/payara6</payara.home>
+        <payara.version>6.2025.11</payara.version>
+        <maven.enforcer.version>3.6.3</maven.enforcer.version>
+        <owasp.dependency.check.version>13.0.0</owasp.dependency.check.version>
+        <cyclonedx.maven.version>2.9.3</cyclonedx.maven.version>
     </properties>
 
     <dependencyManagement>
@@ -98,6 +107,39 @@
                     </configuration>
                 </plugin>
                 <plugin>
+                    <groupId>org.owasp</groupId>
+                    <artifactId>dependency-check-maven</artifactId>
+                    <version>${owasp.dependency.check.version}</version>
+                    <configuration>
+                        <formats>
+                            <format>HTML</format>
+                            <format>JSON</format>
+                        </formats>
+                        <failBuildOnCVSS>8</failBuildOnCVSS>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.cyclonedx</groupId>
+                    <artifactId>cyclonedx-maven-plugin</artifactId>
+                    <version>${cyclonedx.maven.version}</version>
+                    <configuration>
+                        <projectType>application</projectType>
+                        <schemaVersion>1.6</schemaVersion>
+                        <includeBomSerialNumber>true</includeBomSerialNumber>
+                        <includeCompileScope>true</includeCompileScope>
+                        <includeProvidedScope>false</includeProvidedScope>
+                        <includeRuntimeScope>true</includeRuntimeScope>
+                        <includeSystemScope>false</includeSystemScope>
+                        <includeTestScope>false</includeTestScope>
+                        <outputFormat>all</outputFormat>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>${maven.enforcer.version}</version>
+                </plugin>
+                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-ejb-plugin</artifactId>
                     <version>3.2.1</version>
@@ -119,7 +161,73 @@
                         <defaultLibBundleDir>lib</defaultLibBundleDir>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>${build.helper.version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
+
+    <profiles>
+        <profile>
+            <id>security-scan</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>enforce-build-and-dependency-baseline</id>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <requireMavenVersion>
+                                            <version>[3.9.0,)</version>
+                                        </requireMavenVersion>
+                                        <requireJavaVersion>
+                                            <version>[17,)</version>
+                                        </requireJavaVersion>
+                                        <dependencyConvergence/>
+                                        <requireReleaseDeps>
+                                            <onlyWhenRelease>true</onlyWhenRelease>
+                                        </requireReleaseDeps>
+                                    </rules>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.owasp</groupId>
+                        <artifactId>dependency-check-maven</artifactId>
+                        <executions>
+                            <execution>
+                                <id>scan-public-vulnerabilities</id>
+                                <goals>
+                                    <goal>aggregate</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.cyclonedx</groupId>
+                        <artifactId>cyclonedx-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>generate-sbom</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>makeAggregateBom</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
