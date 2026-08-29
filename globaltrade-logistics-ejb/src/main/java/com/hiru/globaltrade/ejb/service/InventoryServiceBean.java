@@ -80,7 +80,11 @@ public class InventoryServiceBean implements InventoryService {
                         where i.quantityOnHand <= i.reorderPoint
                         """, InventoryItemEntity.class)
                 .getResultList();
-        items.forEach(item -> alert(AlertSeverity.WARNING, "Automated replenishment signal", item.getSku() + " should reorder " + item.getReorderQuantity() + " units."));
+        items.forEach(item -> alert(
+                AlertSeverity.WARNING,
+                "Automated replenishment signal",
+                item.getSku() + " should reorder " + item.getReorderQuantity() + " units."
+        ));
         return items.size();
     }
 

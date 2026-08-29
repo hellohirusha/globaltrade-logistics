@@ -15,7 +15,6 @@ import com.hiru.globaltrade.ejb.entity.AlertEntity;
 import com.hiru.globaltrade.ejb.entity.InventoryItemEntity;
 import com.hiru.globaltrade.ejb.entity.PerformanceMetricEntity;
 import com.hiru.globaltrade.ejb.entity.ShipmentEntity;
-import com.hiru.globaltrade.ejb.entity.VendorEntity;
 import com.hiru.globaltrade.ejb.interceptor.PerformanceInterceptor;
 import jakarta.annotation.security.DeclareRoles;
 import jakarta.annotation.security.RolesAllowed;
@@ -55,8 +54,13 @@ public class DashboardServiceBean implements DashboardService {
                 """, ShipmentStatus.DELIVERED, ShipmentStatus.CANCELLED);
         long delayedShipments = countByShipmentStatus(ShipmentStatus.DELAYED);
         long customsReviews = countByShipmentStatus(ShipmentStatus.CUSTOMS_REVIEW);
-        long lowStockItems = countByInventoryStatus(InventoryStatus.LOW_STOCK) + countByInventoryStatus(InventoryStatus.REPLENISHMENT_DUE) + countByInventoryStatus(InventoryStatus.STOCKOUT);
-        long openCriticalAlerts = entityManager.createQuery("select count(a) from AlertEntity a where a.acknowledged = false and a.severity = :severity", Long.class)
+        long lowStockItems = countByInventoryStatus(InventoryStatus.LOW_STOCK)
+                + countByInventoryStatus(InventoryStatus.REPLENISHMENT_DUE)
+                + countByInventoryStatus(InventoryStatus.STOCKOUT);
+        long openCriticalAlerts = entityManager.createQuery("""
+                        select count(a) from AlertEntity a
+                        where a.acknowledged = false and a.severity = :severity
+                        """, Long.class)
                 .setParameter("severity", AlertSeverity.CRITICAL)
                 .getSingleResult();
         long watchlistVendors = entityManager.createQuery("select count(v) from VendorEntity v where v.tier in (:watchlist, :suspended)", Long.class)
