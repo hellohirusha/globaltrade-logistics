@@ -6,7 +6,7 @@
 
     <groupId>com.hiru</groupId>
     <artifactId>globaltrade-logistics</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
     <name>GlobalTrade Logistics Platform</name>
     <description>Jakarta EE 10 EAR platform for GlobalTrade Logistics supply-chain operations.</description>
@@ -34,6 +34,8 @@
         <build.helper.version>3.6.0</build.helper.version>
         <payara.home>C:/Payara/payara6</payara.home>
         <payara.version>6.2025.11</payara.version>
+        <maven.checkstyle.version>3.6.0</maven.checkstyle.version>
+        <checkstyle.version>12.3.1</checkstyle.version>
         <maven.enforcer.version>3.6.3</maven.enforcer.version>
         <owasp.dependency.check.version>13.0.0</owasp.dependency.check.version>
         <cyclonedx.maven.version>2.9.3</cyclonedx.maven.version>
@@ -107,6 +109,25 @@
                     </configuration>
                 </plugin>
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>${maven.checkstyle.version}</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.puppycrawl.tools</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>${checkstyle.version}</version>
+                        </dependency>
+                    </dependencies>
+                    <configuration>
+                        <configLocation>${maven.multiModuleProjectDirectory}/config/checkstyle/checkstyle.xml</configLocation>
+                        <inputEncoding>${project.build.sourceEncoding}</inputEncoding>
+                        <consoleOutput>true</consoleOutput>
+                        <failsOnError>true</failsOnError>
+                        <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    </configuration>
+                </plugin>
+                <plugin>
                     <groupId>org.owasp</groupId>
                     <artifactId>dependency-check-maven</artifactId>
                     <version>${owasp.dependency.check.version}</version>
@@ -168,6 +189,21 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>lint-java-sources</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 
     <profiles>
