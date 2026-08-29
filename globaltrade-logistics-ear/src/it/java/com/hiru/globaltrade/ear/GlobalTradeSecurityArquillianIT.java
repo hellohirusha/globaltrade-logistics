@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith(ArquillianExtension.class)
 class GlobalTradeSecurityArquillianIT {
@@ -140,10 +141,18 @@ class GlobalTradeSecurityArquillianIT {
     }
 
     private Credentials credentials(String role) {
+        String username = System.getProperty("globaltrade.it." + role + "User");
+        String password = System.getProperty("globaltrade.it." + role + "Password");
+        assumeTrue(!isBlank(username) && !isBlank(password),
+                "Supply valid Arquillian credentials with -Dglobaltrade.it.password=<password>.");
         return new Credentials(
-                System.getProperty("globaltrade.it." + role + "User"),
-                System.getProperty("globaltrade.it." + role + "Password")
+                username,
+                password
         );
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 
     private record Credentials(String username, String password) {
