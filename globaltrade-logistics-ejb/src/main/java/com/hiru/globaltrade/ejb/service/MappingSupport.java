@@ -62,11 +62,26 @@ final class MappingSupport {
     }
 
     static AlertView alert(AlertEntity entity) {
-        return new AlertView(entity.getId(), entity.getSeverity(), entity.getTitle(), entity.getMessage(), entity.isAcknowledged(), entity.getRaisedAt());
+        return new AlertView(
+                entity.getId(),
+                entity.getSeverity(),
+                entity.getTitle(),
+                entity.getMessage(),
+                entity.isAcknowledged(),
+                entity.getRaisedAt()
+        );
     }
 
     static ComplianceAuditView audit(ComplianceAuditEntity entity) {
-        return new ComplianceAuditView(entity.getId(), entity.getActor(), entity.getAction(), entity.getResource(), entity.getOutcome(), entity.getIpAddress(), entity.getCreatedAt());
+        return new ComplianceAuditView(
+                entity.getId(),
+                entity.getActor(),
+                entity.getAction(),
+                entity.getResource(),
+                entity.getOutcome(),
+                entity.getIpAddress(),
+                entity.getCreatedAt()
+        );
     }
 
     static PerformanceSample performance(PerformanceMetricEntity entity) {

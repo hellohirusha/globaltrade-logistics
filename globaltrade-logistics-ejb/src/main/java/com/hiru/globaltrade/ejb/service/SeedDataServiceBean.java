@@ -45,11 +45,16 @@ public class SeedDataServiceBean {
         inventory("GT-SEAL-220", "Tamper proof customs seal", "HAM-WH-03", 0, 60, 200);
         inventory("GT-LABEL-310", "Hazmat compliance label pack", "DXB-WH-04", 180, 90, 250);
 
-        shipment("GTL-2026-0001", "Colombo", "Singapore", "OceanLink", transOcean, ShipmentStatus.IN_TRANSIT, ShipmentPriority.EXPRESS, "CUS-LK-SG-8831", LocalDateTime.now().plusHours(18));
-        shipment("GTL-2026-0002", "Hamburg", "Rotterdam", "EuroRail Cargo", alpine, ShipmentStatus.CUSTOMS_REVIEW, ShipmentPriority.CRITICAL, "CUS-DE-NL-4410", LocalDateTime.now().plusHours(9));
-        shipment("GTL-2026-0003", "Shenzhen", "Los Angeles", "Pacific Blue", pacific, ShipmentStatus.DELAYED, ShipmentPriority.CRITICAL, "CUS-CN-US-1944", LocalDateTime.now().minusHours(5));
-        shipment("GTL-2026-0004", "Dubai", "Nairobi", "AirBridge", transOcean, ShipmentStatus.PICKED_UP, ShipmentPriority.STANDARD, "CUS-AE-KE-7002", LocalDateTime.now().plusDays(3));
-        shipment("GTL-2026-0005", "Mumbai", "Doha", "Gulf Express", alpine, ShipmentStatus.DELIVERED, ShipmentPriority.STANDARD, "CUS-IN-QA-1120", LocalDateTime.now().minusDays(2));
+        shipment("GTL-2026-0001", "Colombo", "Singapore", "OceanLink", transOcean, ShipmentStatus.IN_TRANSIT,
+                ShipmentPriority.EXPRESS, "CUS-LK-SG-8831", LocalDateTime.now().plusHours(18));
+        shipment("GTL-2026-0002", "Hamburg", "Rotterdam", "EuroRail Cargo", alpine, ShipmentStatus.CUSTOMS_REVIEW,
+                ShipmentPriority.CRITICAL, "CUS-DE-NL-4410", LocalDateTime.now().plusHours(9));
+        shipment("GTL-2026-0003", "Shenzhen", "Los Angeles", "Pacific Blue", pacific, ShipmentStatus.DELAYED,
+                ShipmentPriority.CRITICAL, "CUS-CN-US-1944", LocalDateTime.now().minusHours(5));
+        shipment("GTL-2026-0004", "Dubai", "Nairobi", "AirBridge", transOcean, ShipmentStatus.PICKED_UP,
+                ShipmentPriority.STANDARD, "CUS-AE-KE-7002", LocalDateTime.now().plusDays(3));
+        shipment("GTL-2026-0005", "Mumbai", "Doha", "Gulf Express", alpine, ShipmentStatus.DELIVERED,
+                ShipmentPriority.STANDARD, "CUS-IN-QA-1120", LocalDateTime.now().minusDays(2));
 
         alert(AlertSeverity.CRITICAL, "Customs seal stockout", "GT-SEAL-220 is out of stock at HAM-WH-03 and blocks export release.");
         alert(AlertSeverity.WARNING, "Vendor watchlist", "VEN-CN-021 requires extra validation before new critical shipments.");
