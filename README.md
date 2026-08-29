@@ -34,7 +34,7 @@ Core capabilities:
 - Jakarta Bean Validation
 - JUnit 5
 - AssertJ
-- HTML, CSS, and vanilla JavaScript
+- HTML, CSS, and Vanilla JavaScript
 
 ## Repository Structure
 
@@ -369,6 +369,7 @@ This gives teams an immediate operational view after deployment.
 
 Automated tests cover:
 
+- Maven Checkstyle linting for Java source and test source hygiene
 - Security role constants
 - Shipment risk scoring
 - Stateless EJB annotation presence
@@ -384,16 +385,25 @@ Run:
 mvn clean verify
 ```
 
+This runs Checkstyle, compiles every module, runs the JUnit 5 test suite, and packages the deployable EAR.
+
 Run Payara container integration tests after Payara, MySQL, and the custom realm are configured:
 
-```bash
-mvn -Parquillian-payara -pl globaltrade-logistics-ear -am verify
+```powershell
+mvn -Parquillian-payara -pl globaltrade-logistics-ear -am "-Dglobaltrade.it.password=<local-test-password>" verify
 ```
 
 Run dependency and supply-chain security checks:
 
-```bash
+```powershell
+$env:NVD_API_KEY = "<your-nvd-api-key>"
 mvn -Psecurity-scan verify
+```
+
+For local SBOM and Maven Enforcer validation without refreshing the NVD vulnerability database:
+
+```bash
+mvn -Psecurity-scan -DskipTests -Ddependency-check.skip=true verify
 ```
 
 ## Manual Smoke Test Checklist

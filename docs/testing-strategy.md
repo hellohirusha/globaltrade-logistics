@@ -7,6 +7,7 @@ The test approach validates timer services, interceptors, transaction behavior, 
 ## Automated Tests Included
 
 - Common module role contract test verifies enterprise role constants.
+- Checkstyle verifies Java source and test-source hygiene across the Maven reactor.
 - Security module tests verify PBKDF2 credential hashes, custom JAAS configuration, and database security tables.
 - EJB risk scoring tests validate high-risk and low-risk logistics scenarios.
 - EJB annotation tests verify stateless service and timer callback presence.
@@ -53,10 +54,10 @@ Security is validated through:
 
 ## Container Integration Tests
 
-Run these after MySQL is bootstrapped, the security extension is installed into Payara, the `globaltrade.db.password` Payara alias exists, and the domain is running:
+Run these after MySQL is bootstrapped, the security extension is installed into Payara, the `globaltrade.db.password` Payara alias exists, and the domain is running. Supply the test user password locally:
 
-```bash
-mvn -Parquillian-payara -pl globaltrade-logistics-ear -am verify
+```powershell
+mvn -Parquillian-payara -pl globaltrade-logistics-ear -am "-Dglobaltrade.it.password=<local-test-password>" verify
 ```
 
 The Arquillian profile deploys the packaged EAR to Payara and verifies live HTTP behavior for admin, coordinator, warehouse, customs, anonymous access, invalid shipment routes, and duplicate vendor submissions.
@@ -65,11 +66,18 @@ The Arquillian profile deploys the packaged EAR to Payara and verifies live HTTP
 
 Run:
 
-```bash
+```powershell
+$env:NVD_API_KEY = "<your-nvd-api-key>"
 mvn -Psecurity-scan verify
 ```
 
-The profile runs Maven Enforcer, OWASP Dependency-Check, and CycloneDX SBOM generation. Dependency-Check requires vulnerability database downloads, so the first run can take several minutes.
+The profile runs Maven Enforcer, OWASP Dependency-Check, and CycloneDX SBOM generation. Dependency-Check requires vulnerability database downloads, so the first run can take several minutes. OWASP recommends configuring the NVD API key through an environment variable or Maven settings rather than putting it directly in `pom.xml`.
+
+Run local Enforcer and SBOM validation without the NVD refresh when an API key is not available:
+
+```powershell
+mvn -Psecurity-scan -DskipTests "-Ddependency-check.skip=true" verify
+```
 
 ## Evidence To Capture For Submission
 
