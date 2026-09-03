@@ -4,6 +4,8 @@ import com.hiru.globaltrade.common.exception.BusinessRuleException;
 import com.hiru.globaltrade.common.exception.ResourceNotFoundException;
 import jakarta.ejb.EJBAccessException;
 import jakarta.ejb.EJBException;
+import jakarta.persistence.OptimisticLockException;
+import jakarta.transaction.RollbackException;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
 
@@ -34,5 +36,15 @@ class ApiExceptionMapperTest {
 
         assertThat(mapper.statusFor(exception)).isEqualTo(Response.Status.FORBIDDEN);
         assertThat(mapper.messageFor(exception)).isEqualTo("Access denied for this operation.");
+    }
+
+    @Test
+    void mapsTransactionRollbackCausedByOptimisticLockingToConflict() {
+        RollbackException rollback = new RollbackException("Transaction marked for rollback.");
+        rollback.initCause(new OptimisticLockException("Record changed."));
+        EJBException exception = new EJBException(rollback);
+
+        assertThat(mapper.statusFor(exception)).isEqualTo(Response.Status.CONFLICT);
+        assertThat(mapper.messageFor(exception)).isEqualTo("The record is being updated by another operation. Refresh and retry.");
     }
 }
