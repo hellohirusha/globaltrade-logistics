@@ -1,8 +1,10 @@
 package com.hiru.globaltrade.ejb;
 
 import com.hiru.globaltrade.ejb.service.MaintenanceServiceBean;
+import com.hiru.globaltrade.ejb.service.InventoryServiceBean;
 import com.hiru.globaltrade.ejb.service.ShipmentServiceBean;
 import com.hiru.globaltrade.ejb.service.SupplyChainTimerBean;
+import com.hiru.globaltrade.ejb.service.VendorServiceBean;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RunAs;
 import jakarta.ejb.Schedule;
@@ -64,5 +66,14 @@ class EnterpriseAnnotationTest {
                 .contains("<role-name>CUSTOMS_AGENT</role-name>")
                 .contains("<role-name>VENDOR_REPRESENTATIVE</role-name>")
                 .contains("<role-name>CUSTOMER_PORTAL_USER</role-name>");
+    }
+
+    @Test
+    void highContentionWritePathsUseDatabaseRowLocks() throws Exception {
+        String inventoryService = Files.readString(Path.of("src/main/java", InventoryServiceBean.class.getName().replace('.', '/') + ".java"));
+        String vendorService = Files.readString(Path.of("src/main/java", VendorServiceBean.class.getName().replace('.', '/') + ".java"));
+
+        assertThat(inventoryService).contains("setLockMode(LockModeType.PESSIMISTIC_WRITE)");
+        assertThat(vendorService).contains("setLockMode(LockModeType.PESSIMISTIC_WRITE)");
     }
 }
