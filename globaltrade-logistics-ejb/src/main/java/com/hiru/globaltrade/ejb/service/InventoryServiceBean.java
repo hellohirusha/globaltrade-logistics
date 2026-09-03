@@ -19,6 +19,7 @@ import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
 import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceContext;
 
 import java.util.List;
@@ -95,6 +96,7 @@ public class InventoryServiceBean implements InventoryService {
                         """, InventoryItemEntity.class)
                 .setParameter("sku", sku)
                 .setParameter("warehouseCode", warehouseCode)
+                .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                 .setMaxResults(1)
                 .getResultList();
         if (items.isEmpty()) {

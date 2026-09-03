@@ -19,6 +19,7 @@ import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
 import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceContext;
 
 import java.math.BigDecimal;
@@ -102,6 +103,7 @@ public class VendorServiceBean implements VendorService {
     private VendorEntity find(String vendorCode) {
         List<VendorEntity> vendors = entityManager.createQuery("select v from VendorEntity v where v.vendorCode = :code", VendorEntity.class)
                 .setParameter("code", vendorCode)
+                .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                 .setMaxResults(1)
                 .getResultList();
         if (vendors.isEmpty()) {
