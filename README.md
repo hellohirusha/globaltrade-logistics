@@ -406,7 +406,7 @@ For local SBOM and Maven Enforcer validation without refreshing the NVD vulnerab
 mvn -Psecurity-scan -DskipTests -Ddependency-check.skip=true verify
 ```
 
-## Manual Smoke Test Checklist
+## Operational Smoke Test Checklist
 
 After deployment, verify:
 

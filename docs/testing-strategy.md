@@ -17,7 +17,7 @@ The test approach validates timer services, interceptors, transaction behavior, 
 - Web asset test verifies that the dashboard contains operational sections for shipments, inventory, vendors, compliance, and telemetry.
 - Arquillian integration tests verify authenticated and unauthorized API behavior in Payara.
 
-## Manual End-to-End Test Cases
+## Operational End-to-End Test Cases
 
 | ID | Scenario | Expected Result |
 | --- | --- | --- |
@@ -60,7 +60,7 @@ Run these after MySQL is bootstrapped, the security extension is installed into 
 mvn -Parquillian-payara -pl globaltrade-logistics-ear -am "-Dglobaltrade.it.password=<local-test-password>" verify
 ```
 
-The Arquillian profile deploys the packaged EAR to Payara and verifies live HTTP behavior for admin, coordinator, warehouse, customs, anonymous access, invalid shipment routes, and duplicate vendor submissions.
+The Arquillian profile deploys the packaged EAR to Payara and verifies live HTTP behavior for admin, coordinator, warehouse, customs, anonymous access, invalid shipment routes, and duplicate vendor create requests.
 
 ## Supply Chain Security Scan
 
@@ -79,7 +79,7 @@ Run local Enforcer and SBOM validation without the NVD refresh when an API key i
 mvn -Psecurity-scan -DskipTests "-Ddependency-check.skip=true" verify
 ```
 
-## Evidence To Capture For Submission
+## Release Evidence Checklist
 
 - Maven `clean verify` output.
 - Arquillian Payara profile output.
