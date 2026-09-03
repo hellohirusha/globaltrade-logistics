@@ -28,12 +28,12 @@ class DashboardAssetTest {
     }
 
     @Test
-    void dashboardDoesNotAdvertiseDemoDataFallback() throws Exception {
+    void dashboardUsesLiveApiWorkflows() throws Exception {
         String html = Files.readString(Path.of("src/main/webapp/index.html"));
         String script = Files.readString(Path.of("src/main/webapp/assets/app.js"));
 
         assertThat(html).doesNotContain("fallback preview");
-        assertThat(script).doesNotContain("bundled demo data");
+        assertThat(script).doesNotContain("static fallback dataset");
         assertThat(script).contains("api(\"/shipments\")");
         assertThat(script).contains("submitJson(\"/inventory\", \"POST\"");
         assertThat(script).contains("submitJson(\"/vendors\", \"POST\"");
