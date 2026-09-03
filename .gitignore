@@ -21,6 +21,12 @@ deploy/payara/*local*.asadmin
 deploy/mysql/*local*.sql
 deploy/mysql/*secret*.sql
 
+### JMeter output ###
+jmeter.log
+jmeter/results/
+jmeter/reports/
+*.jtl
+
 ### Eclipse ###
 .apt_generated
 .classpath
