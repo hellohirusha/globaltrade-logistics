@@ -6,6 +6,10 @@ import com.hiru.globaltrade.common.exception.ResourceNotFoundException;
 import jakarta.ejb.AccessLocalException;
 import jakarta.ejb.EJBAccessException;
 import jakarta.ejb.EJBException;
+import jakarta.persistence.LockTimeoutException;
+import jakarta.persistence.OptimisticLockException;
+import jakarta.persistence.PessimisticLockException;
+import jakarta.transaction.RollbackException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -44,6 +48,11 @@ public class ApiExceptionMapper implements ExceptionMapper<RuntimeException> {
         if (resolved instanceof BusinessRuleException || resolved instanceof ConstraintViolationException || resolved instanceof IllegalArgumentException) {
             return new ApiError(Response.Status.BAD_REQUEST, resolved.getMessage());
         }
+        if (resolved instanceof OptimisticLockException
+                || resolved instanceof PessimisticLockException
+                || resolved instanceof LockTimeoutException) {
+            return new ApiError(Response.Status.CONFLICT, "The record is being updated by another operation. Refresh and retry.");
+        }
         if (resolved instanceof EJBAccessException || resolved instanceof AccessLocalException) {
             return new ApiError(Response.Status.FORBIDDEN, "Access denied for this operation.");
         }
@@ -62,7 +71,7 @@ public class ApiExceptionMapper implements ExceptionMapper<RuntimeException> {
     private boolean shouldUnwrap(Throwable exception) {
         return exception.getCause() != null
                 && exception.getCause() != exception
-                && exception instanceof EJBException;
+                && (exception instanceof EJBException || exception instanceof RollbackException);
     }
 
     private Response failure(Response.Status status, String message) {
