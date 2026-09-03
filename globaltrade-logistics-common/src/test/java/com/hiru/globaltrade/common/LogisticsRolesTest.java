@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class LogisticsRolesTest {
     @Test
-    void exposesEnterpriseRolesRequiredByAssignment() {
+    void exposesEnterpriseRolesRequiredByPlatform() {
         assertThat(LogisticsRoles.ADMIN).isEqualTo("GLOBALTRADE_ADMIN");
         assertThat(LogisticsRoles.COORDINATOR).contains("LOGISTICS");
         assertThat(LogisticsRoles.CUSTOMS_AGENT).contains("CUSTOMS");
