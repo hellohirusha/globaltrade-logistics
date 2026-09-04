@@ -1,12 +1,17 @@
 # GlobalTrade Logistics
 
-GlobalTrade Logistics is a Jakarta EE 10 enterprise application for managing international supply-chain operations. It provides shipment visibility, vendor performance monitoring, inventory replenishment signals, customs/compliance audit trails, operational alerting, and EJB performance telemetry through a Payara Server 6 EAR deployment.
+GlobalTrade Logistics is a Jakarta EE 10 enterprise application for managing international supply-chain operations. It
+provides shipment visibility, vendor performance monitoring, inventory replenishment signals, customs/compliance audit
+trails, operational alerting, and EJB performance telemetry through a Payara Server 6 EAR deployment.
 
-The system is built as a real enterprise application with a split Maven architecture, a MySQL-backed persistence layer, protected business services, scheduled monitoring jobs, interceptor-based audit and telemetry, and a responsive operations dashboard.
+The system is built as a real enterprise application with a split Maven architecture, a MySQL-backed persistence layer,
+protected business services, scheduled monitoring jobs, interceptor-based audit and telemetry, and a responsive
+operations dashboard.
 
 ## Platform Overview
 
-GlobalTrade Logistics helps operations teams coordinate global logistics workflows across carriers, warehouses, suppliers, customs processes, and internal control teams.
+GlobalTrade Logistics helps operations teams coordinate global logistics workflows across carriers, warehouses,
+suppliers, customs processes, and internal control teams.
 
 Core capabilities:
 
@@ -214,21 +219,21 @@ Base path:
 
 Endpoints:
 
-| Method | Path | Purpose |
-| --- | --- | --- |
-| `GET` | `/dashboard` | Read the dashboard snapshot. |
-| `GET` | `/shipments` | Read active shipments. |
-| `POST` | `/shipments` | Create a shipment. |
-| `PUT` | `/shipments/status` | Update shipment status. |
-| `GET` | `/inventory` | Read inventory items. |
-| `POST` | `/inventory` | Create an inventory item. |
-| `PUT` | `/inventory` | Adjust inventory levels. |
-| `GET` | `/vendors` | Read vendor performance data. |
-| `POST` | `/vendors` | Create a vendor. |
-| `PUT` | `/vendors/score` | Recalculate vendor score and tier. |
-| `GET` | `/alerts` | Read open alerts. |
-| `PUT` | `/alerts/{id}/acknowledge` | Acknowledge an alert. |
-| `GET` | `/compliance?limit=25` | Read recent compliance audit events. |
+| Method | Path                       | Purpose                              |
+|--------|----------------------------|--------------------------------------|
+| `GET`  | `/dashboard`               | Read the dashboard snapshot.         |
+| `GET`  | `/shipments`               | Read active shipments.               |
+| `POST` | `/shipments`               | Create a shipment.                   |
+| `PUT`  | `/shipments/status`        | Update shipment status.              |
+| `GET`  | `/inventory`               | Read inventory items.                |
+| `POST` | `/inventory`               | Create an inventory item.            |
+| `PUT`  | `/inventory`               | Adjust inventory levels.             |
+| `GET`  | `/vendors`                 | Read vendor performance data.        |
+| `POST` | `/vendors`                 | Create a vendor.                     |
+| `PUT`  | `/vendors/score`           | Recalculate vendor score and tier.   |
+| `GET`  | `/alerts`                  | Read open alerts.                    |
+| `PUT`  | `/alerts/{id}/acknowledge` | Acknowledge an alert.                |
+| `GET`  | `/compliance?limit=25`     | Read recent compliance audit events. |
 
 API responses use `ApiEnvelope<T>`:
 
@@ -257,10 +262,11 @@ From the project root:
 mvn clean verify
 ```
 
-If Maven is not on `PATH`, use the Maven distribution bundled with IntelliJ IDEA or NetBeans. On the current development machine, this command was used successfully:
+If Maven is not on `PATH`, you can use the Maven distribution bundled with your IDE instead. For example, in IntelliJ
+IDEA this is typically located under the IDE's installation directory at a path similar to:
 
-```powershell
-& 'C:/Program Files/JetBrains/IntelliJ IDEA 2026.2.1/plugins/maven-plugin/lib/maven3/bin/mvn.cmd' clean verify
+```text
+<IntelliJ-install-dir>/plugins/maven-plugin/lib/maven3/bin/mvn(.cmd)
 ```
 
 The deployable EAR is created at:
@@ -319,8 +325,11 @@ Build and install the Payara login module before creating or using the realm:
 
 ```powershell
 mvn -pl globaltrade-logistics-security package
-.\deploy\payara\install-security-extension.ps1 -PayaraHome C:\Payara\payara6 -DomainName domain1
+.\deploy\payara\install-security-extension.ps1 -PayaraHome <path-to-payara6> -DomainName domain1
 ```
+
+Replace `<path-to-payara6>` with your local Payara installation directory (e.g. `C:\Payara\payara6` on Windows, or
+`/opt/payara6` on Linux/macOS).
 
 Restart Payara after installing the security extension:
 
@@ -333,11 +342,16 @@ Run from the Payara `bin` directory:
 ```bash
 asadmin start-domain
 asadmin create-password-alias globaltrade.db.password
-asadmin multimode --file C:/Users/neth/Documents/Projects/intelli_j-idea-projects/bcd-ii-final-project/globaltrade-logistics/deploy/payara/setup-domain.asadmin
+asadmin multimode --file <path-to-project>/globaltrade-logistics/deploy/payara/setup-domain.asadmin
 asadmin ping-connection-pool globaltradePool
 ```
 
-When `create-password-alias` prompts for the alias password, enter the same MySQL password used for `globaltrade_app`. The tracked Payara script only stores `${ALIAS=globaltrade.db.password}` for the JDBC pool. The custom JAAS module uses `jdbc/globaltradeDS`, so the realm does not need its own database password.
+Replace `<path-to-project>` with the location where you cloned this repository. If you run the command from inside the
+project root, you can use the relative path `deploy/payara/setup-domain.asadmin` instead.
+
+When `create-password-alias` prompts for the alias password, enter the same MySQL password used for `globaltrade_app`.
+The tracked Payara script only stores `${ALIAS=globaltrade.db.password}` for the JDBC pool. The custom JAAS module uses
+`jdbc/globaltradeDS`, so the realm does not need its own database password.
 
 ## Deploy
 
@@ -433,6 +447,7 @@ Additional technical documentation:
 ## Operational Notes
 
 - `persistence.xml` uses non-destructive schema management. Apply `deploy/mysql/schema.sql` before deploying the EAR.
-- Database passwords must be supplied locally through MySQL administration and Payara password aliases, not committed into setup scripts.
+- Database passwords must be supplied locally through MySQL administration and Payara password aliases, not committed
+  into setup scripts.
 - Ensure MySQL Connector/J is available in the Payara domain before deploying the EAR.
 - Live operations use the Jakarta REST API backed by EJB services and MySQL.
